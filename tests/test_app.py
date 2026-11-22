@@ -211,3 +211,17 @@ def test_health_endpoint(client):
 
 def test_unknown_page_returns_404(client):
     assert client.get("/does-not-exist").status_code == 404
+
+
+def test_init_db_falls_back_when_path_is_unwritable(client):
+    app_module.app.config["DATABASE"] = "/proc/definitely-not-writable/todos.db"
+    app_module.init_db()
+
+    assert app_module.app.config["DATABASE"] != "/proc/definitely-not-writable/todos.db"
+    assert client.get("/health").status_code == 200
+
+
+def test_init_db_is_idempotent(client):
+    add(client, "Only one")
+    app_module.init_db()
+    assert len(tasks(client)) == 1

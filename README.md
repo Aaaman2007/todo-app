@@ -21,13 +21,15 @@ learning project: Docker, CI/CD, Terraform, Kubernetes, and monitoring come next
 ```
 todo-app/
 ├── app.py                  # Flask app: routes, SQLite access, helpers
-├── requirements.txt        # runtime dependencies
+├── requirements.txt        # runtime dependencies (Flask + gunicorn)
 ├── requirements-dev.txt    # + pytest
+├── railway.json            # Railway build/deploy config (start command, healthcheck)
+├── Procfile                # same start command for other PaaS hosts
 ├── templates/
 │   ├── index.html          # the whole UI (inline CSS + a little vanilla JS)
 │   └── 404.html
 └── tests/
-    └── test_app.py         # 23 tests covering routes, validation and security
+    └── test_app.py         # 25 tests covering routes, validation and security
 ```
 
 ## Run locally
@@ -49,10 +51,39 @@ Delete it to start with an empty list.
 
 | Variable    | Default              | Purpose                                        |
 | ----------- | -------------------- | ---------------------------------------------- |
-| `PORT`      | `5000`               | Port the dev server listens on                 |
+| `PORT`      | `5000`               | Port to listen on (set by Railway/Render/Heroku) |
 | `DATABASE`  | `./todos.db`         | SQLite file path (`:memory:` for tests)        |
 | `SECRET_KEY`| dev placeholder      | Signs flash messages — set a real one in prod  |
 | `FLASK_DEBUG` | off                | Set to `1` to enable the debug reloader        |
+
+## Deploying to Railway
+
+The app listens on **`$PORT`** (falling back to `5000` when it's unset) and is served by
+gunicorn in production. Railway routes public traffic to the port configured under
+**Networking → Public Networking**, and those two ports must be identical.
+
+The service config lives in `railway.json` (start command + `/health` healthcheck),
+with a matching `Procfile` for other platforms.
+
+**Checklist for this project**
+
+1. **Variables** → make `PORT` match your public domain's target port.
+   Since the domain is set to **5000**, add `PORT=5000`.
+   (Alternatively, delete the domain and generate a new one on `8080` and leave `PORT` alone.)
+2. **Deployments → View logs** → confirm the line
+   `Listening at: http://0.0.0.0:<port>` reports the same port as step 1.
+3. **Settings → Healthcheck** → path `/health` (already set by `railway.json`).
+4. **Data persistence** → Railway's filesystem is wiped on every deploy. To keep tasks:
+   attach a **Volume** mounted at `/data`, then set `DATABASE=/data/todos.db`.
+
+**Troubleshooting**
+
+| Symptom | Cause |
+| --- | --- |
+| `502 Application failed to respond`, deploy shows **Success** | Nothing is listening on the domain's target port — `PORT` ≠ target port (see step 1). |
+| Deploy fails at start | Check the logs for `Address already in use` or a missing `gunicorn` in `requirements.txt`. |
+| Locally fine, empty list after redeploy | Expected without a volume: SQLite lives on the ephemeral container disk. |
+| `Could not use database ... falling back to` in logs | `DATABASE` points somewhere unwritable (usually a volume that isn't mounted yet). |
 
 ## API
 
