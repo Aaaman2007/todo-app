@@ -40,8 +40,10 @@ todo-app/
 ├── tasks.py                # task routes, all scoped to the logged-in user
 ├── db.py                   # connection handling, schema, migrations
 ├── helpers.py              # date/priority formatting, safe redirects
-├── requirements.txt        # runtime dependencies (Flask + gunicorn)
+├── requirements.txt        # runtime dependencies (Flask + gunicorn + python-dotenv)
 ├── requirements-dev.txt    # + pytest
+├── .env.example            # every variable, documented - copy to .env
+├── scripts/railway-env.sh  # prints Railway values + CLI command with a fresh SECRET_KEY
 ├── railway.json            # Railway build/deploy config (start command, healthcheck)
 ├── Procfile                # same start command for other PaaS hosts
 ├── static/
@@ -74,7 +76,50 @@ http://YOUR_IP:5000.
 The database file (`todos.db`) is created and migrated automatically on first run and is
 git-ignored. Delete it to start from scratch.
 
+## Environment variables
+
+The app reads its configuration from environment variables, and locally from a `.env`
+file in the project root (loaded by `python-dotenv`; **real environment variables always
+win**, so Railway's values are never overwritten by a stray `.env`).
+
+    cp .env.example .env
+
+Then put a real key in it:
+
+    python -c "import secrets; print(secrets.token_hex(32))"
+
+`.env` is git-ignored and is only for local development — Railway never reads it.
+
+### Connecting to Railway
+
+Only five variables matter, and `./scripts/railway-env.sh` prints them with a freshly
+generated key plus a ready-to-paste CLI command:
+
+    ./scripts/railway-env.sh           # print values + `railway variables` command
+    ./scripts/railway-env.sh --apply   # set them directly (needs the Railway CLI)
+
+The CLI path, if you'd rather not click through the dashboard:
+
+    npm i -g @railway/cli
+    railway login
+    railway link          # pick project + service
+    ./scripts/railway-env.sh --apply
+    railway up            # redeploy
+
+| Variable | Value on Railway | Why |
+| --- | --- | --- |
+| `PORT` | `5000` | Must equal the public domain's target port |
+| `COOKIE_SECURE` | `1` | Session cookie only over HTTPS |
+| `FLASK_DEBUG` | `0` | Debugger off in production |
+| `DATABASE` | `/data/todos.db` | Needs a volume mounted at `/data` |
+| `SECRET_KEY` | 64 random hex chars | Signs sessions; a random-per-boot key logs everyone out on redeploy |
+
+`railway variables` prints what's currently set, and `railway logs` shows the container
+output if something looks wrong.
+
 ## Configuration
+
+Locally these come from `.env`; on Railway from the service's Variables.
 
 | Variable       | Default              | Purpose                                                    |
 | -------------- | -------------------- | ---------------------------------------------------------- |
