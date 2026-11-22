@@ -6,6 +6,7 @@ import sqlite3
 from datetime import date
 
 import click
+from dotenv import load_dotenv
 from flask import Flask, abort, jsonify, render_template, request, session
 from werkzeug.security import generate_password_hash
 
@@ -13,6 +14,11 @@ import db
 from db import get_db
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Local development: read .env from the project root if it exists.
+# Variables already set in the real environment always win, so Railway's
+# injected values are never overwritten.
+load_dotenv()
 
 
 def create_app(config=None):

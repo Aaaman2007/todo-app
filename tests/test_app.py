@@ -452,3 +452,23 @@ def test_upgrades_an_existing_pre_accounts_database(tmp_path):
     with application.app_context():
         version = get_db().execute("PRAGMA user_version").fetchone()[0]
     assert version == 1
+
+
+def test_environment_variables_configure_the_app(tmp_path, monkeypatch):
+    monkeypatch.setenv("DATABASE", str(tmp_path / "from-env.db"))
+    monkeypatch.setenv("SECRET_KEY", "secret-from-env")
+    monkeypatch.setenv("COOKIE_SECURE", "1")
+
+    application = create_app()
+    assert application.config["DATABASE"] == str(tmp_path / "from-env.db")
+    assert application.config["SECRET_KEY"] == "secret-from-env"
+    assert application.config["SESSION_COOKIE_SECURE"] is True
+    assert application.test_client().get("/health").status_code == 200
+
+
+def test_cookie_secure_is_off_by_default(tmp_path, monkeypatch):
+    monkeypatch.delenv("COOKIE_SECURE", raising=False)
+    application = create_app(
+        {"TESTING": True, "DATABASE": str(tmp_path / "plain.db"), "SECRET_KEY": "k"}
+    )
+    assert application.config["SESSION_COOKIE_SECURE"] is False
