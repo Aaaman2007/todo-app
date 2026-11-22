@@ -1,567 +1,148 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#4f46e5">
-  <title>My Tasks</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M9 16.5l5 5 9-11' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <style>
-    :root {
-      --bg: #f5f6fb;
-      --card: #ffffff;
-      --ink: #15171d;
-      --muted: #6b7280;
-      --line: #e6e8f0;
-      --accent: #4f46e5;
-      --accent-2: #7c3aed;
-      --accent-soft: #eef0ff;
-      --danger: #dc2626;
-      --danger-soft: #fdecec;
-      --ok: #047857;
-      --ok-soft: #e7f7f0;
-      --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 12px 32px -12px rgba(16, 24, 40, .16);
-      --radius: 16px;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0e1015;
-        --card: #171a21;
-        --ink: #e9ebf2;
-        --muted: #98a1b2;
-        --line: #262b37;
-        --accent: #818cf8;
-        --accent-2: #a78bfa;
-        --accent-soft: #22263a;
-        --danger: #f87171;
-        --danger-soft: #33202a;
-        --ok: #34d399;
-        --ok-soft: #142b25;
-        --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 16px 40px -16px rgba(0, 0, 0, .7);
-      }
-    }
+{% extends "base.html" %}
 
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      padding: 40px 16px 64px;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(720px 320px at 12% -8%, rgba(99, 102, 241, .18), transparent 70%),
-        radial-gradient(600px 300px at 92% 4%, rgba(168, 85, 247, .14), transparent 70%),
-        var(--bg);
-      background-attachment: fixed;
-      -webkit-font-smoothing: antialiased;
-      line-height: 1.45;
-    }
-
-    .wrap { max-width: 720px; margin: 0 auto; }
-
-    /* ---------- header ---------- */
-    .top {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-    .eyebrow {
-      margin: 0 0 4px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: .09em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    h1 {
-      margin: 0;
-      font-size: clamp(26px, 5vw, 34px);
-      letter-spacing: -.03em;
-      font-weight: 800;
-    }
-    .score { text-align: right; white-space: nowrap; }
-    .score b {
-      display: block;
-      font-size: 26px;
-      line-height: 1;
-      letter-spacing: -.02em;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    .score span { font-size: 12px; color: var(--muted); }
-
-    .progress {
-      height: 6px;
-      border-radius: 999px;
-      background: var(--line);
-      overflow: hidden;
-      margin-bottom: 22px;
-    }
-    .progress i {
-      display: block;
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      transition: width .35s ease;
-    }
-
-    /* ---------- cards & inputs ---------- */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    input, select, button, a { font: inherit; }
-    input, select {
-      color: var(--ink);
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 12px;
-      min-width: 0;
-      transition: border-color .15s, box-shadow .15s;
-    }
-    input::placeholder { color: var(--muted); }
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-soft);
-    }
-
-    .btn {
-      border: 1px solid transparent;
-      border-radius: 10px;
-      padding: 10px 16px;
-      font-weight: 650;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: transform .12s, filter .15s, background .15s;
-    }
-    .btn:active { transform: translateY(1px); }
-    .btn-primary {
-      color: #fff;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      box-shadow: 0 8px 18px -8px rgba(79, 70, 229, .8);
-    }
-    .btn-primary:hover { filter: brightness(1.06); }
-    .btn-ghost {
-      background: transparent;
-      color: var(--muted);
-      border-color: var(--line);
-      font-weight: 600;
-    }
-    .btn-ghost:hover { color: var(--ink); border-color: var(--muted); }
-    .btn-sm { padding: 7px 12px; font-size: 13px; border-radius: 9px; }
-
-    /* ---------- add form ---------- */
-    .add { padding: 14px; margin-bottom: 16px; }
-    .add input[type="text"] { width: 100%; font-size: 15.5px; padding: 12px 14px; }
-    .add-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-      flex-wrap: wrap;
-    }
-    .add-row select { flex: 1 1 110px; }
-    .add-row input[type="date"] { flex: 1 1 150px; }
-    .add-row .btn { flex: 0 0 auto; }
-
-    /* ---------- toolbar ---------- */
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-    .toolbar input[type="search"] { flex: 1 1 180px; }
-    .toolbar select { flex: 0 0 auto; }
-
-    .tabs { display: flex; gap: 4px; margin: 0 0 12px; }
-    .tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      font-size: 13.5px;
-      font-weight: 600;
-      color: var(--muted);
-      text-decoration: none;
-      border: 1px solid transparent;
-    }
-    .tab:hover { color: var(--ink); background: var(--card); border-color: var(--line); }
-    .tab.on {
-      color: var(--accent);
-      background: var(--accent-soft);
-      border-color: color-mix(in srgb, var(--accent) 28%, transparent);
-    }
-    .tab em {
-      font-style: normal;
-      font-size: 11.5px;
-      color: var(--muted);
-      background: var(--bg);
-      border-radius: 999px;
-      padding: 0 6px;
-      min-width: 20px;
-      text-align: center;
-    }
-    .tab.on em { color: var(--accent); background: var(--card); }
-
-    /* ---------- list ---------- */
-    .list { overflow: hidden; }
-    .list ul { list-style: none; margin: 0; padding: 0; }
-
-    .task {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      gap: 12px;
-      align-items: start;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-      transition: background .15s;
-    }
-    .task:last-child { border-bottom: none; }
-    .task:hover { background: color-mix(in srgb, var(--accent) 4%, transparent); }
-
-    .check-form, .delete-form { margin: 0; display: flex; }
-    .check {
-      width: 24px;
-      height: 24px;
-      margin-top: 1px;
-      border-radius: 50%;
-      border: 2px solid color-mix(in srgb, var(--muted) 45%, transparent);
-      background: transparent;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      padding: 0;
-      transition: border-color .15s, background .15s, transform .12s;
-    }
-    .check:hover { border-color: var(--accent); transform: scale(1.06); }
-    .check svg { width: 13px; height: 13px; opacity: 0; transition: opacity .15s; }
-    .check.done {
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      border-color: transparent;
-    }
-    .check.done svg { opacity: 1; }
-
-    .body { min-width: 0; }
-    .title {
-      margin: 0;
-      font-size: 15px;
-      font-weight: 550;
-      overflow-wrap: anywhere;
-    }
-    .is-done .title {
-      text-decoration: line-through;
-      text-decoration-thickness: 1.5px;
-      color: var(--muted);
-    }
-
-    .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-    .chip {
-      font-size: 11.5px;
-      font-weight: 650;
-      letter-spacing: .02em;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      color: var(--muted);
-      background: var(--bg);
-      white-space: nowrap;
-    }
-    .chip.high { color: var(--danger); background: var(--danger-soft); border-color: transparent; }
-    .chip.low { color: var(--ok); background: var(--ok-soft); border-color: transparent; }
-    .chip.overdue { color: #fff; background: var(--danger); border-color: transparent; }
-    .is-done .meta .chip { opacity: .7; }
-
-    .icon-btn {
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      border-radius: 8px;
-      padding: 5px;
-      display: grid;
-      place-items: center;
-      transition: color .15s, background .15s;
-    }
-    .icon-btn:hover { color: var(--danger); background: var(--danger-soft); }
-    .icon-btn svg { width: 17px; height: 17px; }
-
-    /* ---------- inline edit ---------- */
-    details.edit { margin-top: 8px; }
-    details.edit > summary {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      list-style: none;
-      cursor: pointer;
-      font-size: 12.5px;
-      font-weight: 600;
-      color: var(--muted);
-      border-radius: 7px;
-      padding: 3px 7px;
-      margin-left: -7px;
-      user-select: none;
-    }
-    details.edit > summary::-webkit-details-marker { display: none; }
-    details.edit > summary:hover { color: var(--accent); background: var(--accent-soft); }
-    details.edit > summary::before { content: "✎"; font-size: 12px; }
-    .edit-form { display: grid; gap: 8px; margin: 10px 0 2px; }
-    .edit-form input[type="text"] { width: 100%; }
-    .edit-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .edit-row select, .edit-row input[type="date"] { flex: 1 1 120px; }
-
-    /* ---------- empty state ---------- */
-    .empty { padding: 52px 24px; text-align: center; }
-    .empty svg { width: 42px; height: 42px; color: var(--muted); opacity: .5; }
-    .empty h2 { margin: 12px 0 4px; font-size: 16px; }
-    .empty p { margin: 0; font-size: 14px; color: var(--muted); }
-
-    /* ---------- flash ---------- */
-    .flash {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      border-radius: 12px;
-      font-size: 13.5px;
-      font-weight: 550;
-      margin-bottom: 12px;
-      border: 1px solid transparent;
-    }
-    .flash.error { color: var(--danger); background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 24%, transparent); }
-    .flash.success { color: var(--ok); background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 24%, transparent); }
-    .flash button {
-      border: none; background: none; cursor: pointer; color: inherit;
-      font-size: 16px; line-height: 1; padding: 0 2px; opacity: .6;
-    }
-    .flash button:hover { opacity: 1; }
-
-    /* ---------- footer ---------- */
-    .foot {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 16px;
-      font-size: 13px;
-      color: var(--muted);
-      flex-wrap: wrap;
-    }
-    .foot form { margin: 0; }
-    .foot .btn-ghost { color: var(--danger); border-color: transparent; }
-    .foot .btn-ghost:hover { background: var(--danger-soft); }
-    .hint { text-align: center; margin-top: 26px; font-size: 12px; color: var(--muted); opacity: .8; }
-    kbd {
-      font-family: inherit;
-      font-size: 11px;
-      border: 1px solid var(--line);
-      border-bottom-width: 2px;
-      border-radius: 5px;
-      padding: 0 5px;
-      background: var(--card);
-    }
-
-    @media (max-width: 560px) {
-      body { padding-top: 26px; }
-      .add-row .btn { flex: 1 1 100%; }
-      .task { padding: 13px 14px; gap: 10px; }
-      .tabs { overflow-x: auto; padding-bottom: 2px; }
-      .toolbar .btn-ghost { display: none; }
-    }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <header class="top">
-      <div>
-        <p class="eyebrow">{{ today_label }}</p>
-        <h1>My tasks</h1>
-      </div>
-      <div class="score">
-        <b>{{ stats.percent }}%</b>
-        <span>{{ stats.done }} of {{ stats.total }} done</span>
-      </div>
-    </header>
-
-    <div class="progress" role="progressbar" aria-valuenow="{{ stats.percent }}" aria-valuemin="0" aria-valuemax="100">
-      <i style="width: {{ stats.percent }}%"></i>
-    </div>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-      <div class="flash {{ category }}">
-        <span>{{ message }}</span>
-        <button type="button" onclick="this.parentElement.remove()" aria-label="Dismiss">×</button>
-      </div>
-      {% endfor %}
-    {% endwith %}
-
-    <form class="card add" action="{{ url_for('add') }}" method="post">
-      <input type="hidden" name="next" value="{{ next_url }}">
-      <input type="text" name="title" placeholder="What needs doing?" maxlength="200"
-             autocomplete="off" aria-label="Task title" required autofocus>
-      <div class="add-row">
-        <select name="priority" aria-label="Priority">
-          <option value="low">Low priority</option>
-          <option value="normal" selected>Normal</option>
-          <option value="high">High priority</option>
-        </select>
-        <input type="date" name="due_date" aria-label="Due date">
-        <button class="btn btn-primary" type="submit">Add task</button>
-      </div>
-    </form>
-
-    <form class="toolbar" action="{{ url_for('home') }}" method="get" role="search">
-      <input type="hidden" name="status" value="{{ status }}">
-      <input type="search" name="q" value="{{ query }}" placeholder="Search tasks…" aria-label="Search tasks">
-      <select name="sort" aria-label="Sort tasks" onchange="this.form.submit()">
-        {% for key, label in {'newest': 'Newest first', 'oldest': 'Oldest first', 'priority': 'Priority', 'due': 'Due date'}.items() %}
-          <option value="{{ key }}" {% if sort == key %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-      <button class="btn btn-ghost btn-sm" type="submit">Search</button>
-    </form>
-
-    <nav class="tabs" aria-label="Filter tasks">
-      {% for key, label in filters.items() %}
-        <a class="tab {% if status == key %}on{% endif %}"
-           href="{{ url_for('home', status=key, sort=sort, q=query or none) }}">
-          {{ label }}
-          <em>{{ {'all': stats.total, 'active': stats.active, 'done': stats.done}[key] }}</em>
-        </a>
-      {% endfor %}
-    </nav>
-
-    <section class="card list">
-      {% if tasks %}
-      <ul>
-        {% for t in tasks %}
-        <li class="task {% if t.done %}is-done{% endif %}">
-          <form class="check-form" action="{{ url_for('toggle', task_id=t.id) }}" method="post">
-            <input type="hidden" name="next" value="{{ next_url }}">
-            <button type="submit" class="check {% if t.done %}done{% endif %}"
-                    aria-label="{{ 'Mark as not done' if t.done else 'Mark as done' }}"
-                    title="{{ 'Mark as not done' if t.done else 'Mark as done' }}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4"
-                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M4 12.5l5 5L20 6.5"/>
-              </svg>
-            </button>
-          </form>
-
-          <div class="body">
-            <p class="title">{{ t.title }}</p>
-            <div class="meta">
-              <span class="chip {{ t.priority }}">{{ t.priority }}</span>
-              {% if t.due %}
-                <span class="chip {% if t.due.overdue %}overdue{% endif %}">{{ t.due.label }}</span>
-              {% endif %}
-            </div>
-
-            <details class="edit">
-              <summary>Edit</summary>
-              <form class="edit-form" action="{{ url_for('edit', task_id=t.id) }}" method="post">
-                <input type="hidden" name="next" value="{{ next_url }}">
-                <input type="text" name="title" value="{{ t.title }}" maxlength="200"
-                       aria-label="Task title" required>
-                <div class="edit-row">
-                  <select name="priority" aria-label="Priority">
-                    {% for p in priorities %}
-                    <option value="{{ p }}" {% if t.priority == p %}selected{% endif %}>{{ p }}</option>
-                    {% endfor %}
-                  </select>
-                  <input type="date" name="due_date"
-                         value="{{ t.due.date if t.due else '' }}" aria-label="Due date">
-                  <button class="btn btn-primary btn-sm" type="submit">Save</button>
-                </div>
-              </form>
-            </details>
-          </div>
-
-          <form class="delete-form" action="{{ url_for('delete', task_id=t.id) }}" method="post"
-                data-title="{{ t.title }}">
-            <input type="hidden" name="next" value="{{ next_url }}">
-            <button type="submit" class="icon-btn" aria-label="Delete task" title="Delete task">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M4 7h16M10 11v6M14 11v6"/>
-                <path d="M6 7l1 13h10l1-13"/>
-                <path d="M9 7V4h6v3"/>
-              </svg>
-            </button>
-          </form>
-        </li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <div class="empty">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="4" y="3" width="16" height="18" rx="3"/>
-          <path d="M8.5 9.5h7M8.5 13h7M8.5 16.5h4"/>
-        </svg>
-        {% if query %}
-          <h2>No matches for “{{ query }}”</h2>
-          <p>Try a shorter search or a different filter.</p>
-        {% elif status == 'done' %}
-          <h2>Nothing completed yet</h2>
-          <p>Check off a task and it will show up here.</p>
-        {% elif status == 'active' %}
-          <h2>All caught up</h2>
-          <p>Every task is done. Enjoy it.</p>
-        {% else %}
-          <h2>Your list is empty</h2>
-          <p>Add your first task above to get started.</p>
-        {% endif %}
-      </div>
-      {% endif %}
-    </section>
-
-    <div class="foot">
-      <span>{{ stats.active }} active · {{ stats.done }} done</span>
-      {% if stats.done %}
-      <form action="{{ url_for('clear_completed') }}" method="post">
-        <input type="hidden" name="next" value="{{ next_url }}">
-        <button class="btn btn-ghost btn-sm" type="submit">Clear completed</button>
-      </form>
-      {% endif %}
-    </div>
-
-    <p class="hint">Press <kbd>/</kbd> to jump to the input · <kbd>Esc</kbd> to leave it</p>
+{% block content %}
+<div class="progress-row">
+  <div class="progress" role="progressbar" aria-valuenow="{{ stats.percent }}" aria-valuemin="0" aria-valuemax="100">
+    <i style="width: {{ stats.percent }}%"></i>
   </div>
+  <span class="progress-note">{{ stats.done }} of {{ stats.total }} done · {{ stats.percent }}%</span>
+</div>
 
-  <script>
-    // Ask before deleting anything.
-    document.querySelectorAll(".delete-form").forEach(function (form) {
-      form.addEventListener("submit", function (event) {
-        if (!confirm('Delete "' + form.dataset.title + '"?')) event.preventDefault();
-      });
-    });
+<form class="card add" action="{{ url_for('tasks.add') }}" method="post">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <input type="text" name="title" placeholder="What needs doing?" maxlength="200"
+         autocomplete="off" aria-label="Task title" required autofocus>
+  <div class="add-row">
+    <select name="priority" aria-label="Priority">
+      <option value="low">Low priority</option>
+      <option value="normal" selected>Normal</option>
+      <option value="high">High priority</option>
+    </select>
+    <input type="date" name="due_date" aria-label="Due date">
+    <button class="btn btn-primary" type="submit">Add task</button>
+  </div>
+</form>
 
-    // Keyboard shortcuts (skipped while typing in a field).
-    var titleInput = document.querySelector('input[name="title"]');
-    function typing(el) {
-      return el && (el.tagName === "INPUT" || el.tagName === "SELECT" ||
-                    el.tagName === "TEXTAREA" || el.isContentEditable);
-    }
-    document.addEventListener("keydown", function (event) {
-      if (typing(event.target) || event.metaKey || event.ctrlKey || event.altKey) return;
-      if (event.key === "/" || event.key === "n") {
-        event.preventDefault();
-        titleInput && titleInput.focus();
-      }
-    });
-  </script>
-</body>
-</html>
+<form class="toolbar" action="{{ url_for('tasks.home') }}" method="get" role="search">
+  <input type="hidden" name="status" value="{{ status }}">
+  <input type="search" name="q" value="{{ query }}" placeholder="Search your tasks…" aria-label="Search tasks">
+  <select name="sort" aria-label="Sort tasks" onchange="this.form.submit()">
+    {% for key, label in {'newest': 'Newest first', 'oldest': 'Oldest first', 'priority': 'Priority', 'due': 'Due date'}.items() %}
+      <option value="{{ key }}" {% if sort == key %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-ghost btn-sm" type="submit">Search</button>
+</form>
+
+<nav class="tabs" aria-label="Filter tasks">
+  {% for key, label in filters.items() %}
+    <a class="tab {% if status == key %}on{% endif %}"
+       href="{{ url_for('tasks.home', status=key, sort=sort, q=query or none) }}">
+      {{ label }}
+      <em>{{ {'all': stats.total, 'active': stats.active, 'done': stats.done}[key] }}</em>
+    </a>
+  {% endfor %}
+</nav>
+
+<section class="card list">
+  {% if tasks %}
+  <ul>
+    {% for t in tasks %}
+    <li class="task {% if t.done %}is-done{% endif %}">
+      <form class="check-form" action="{{ url_for('tasks.toggle', task_id=t.id) }}" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <button type="submit" class="check {% if t.done %}done{% endif %}"
+                aria-label="{{ 'Mark as not done' if t.done else 'Mark as done' }}"
+                title="{{ 'Mark as not done' if t.done else 'Mark as done' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 12.5l5 5L20 6.5"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="body">
+        <p class="title">{{ t.title }}</p>
+        <div class="meta">
+          <span class="chip {{ t.priority }}">{{ t.priority }}</span>
+          {% if t.due %}
+            <span class="chip {% if t.due.overdue %}overdue{% endif %}">{{ t.due.label }}</span>
+          {% endif %}
+        </div>
+
+        <details class="edit">
+          <summary>Edit</summary>
+          <form class="edit-form" action="{{ url_for('tasks.edit', task_id=t.id) }}" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrf }}">
+            <input type="hidden" name="next" value="{{ next_url }}">
+            <input type="text" name="title" value="{{ t.title }}" maxlength="200"
+                   aria-label="Task title" required>
+            <div class="edit-row">
+              <select name="priority" aria-label="Priority">
+                {% for p in priorities %}
+                <option value="{{ p }}" {% if t.priority == p %}selected{% endif %}>{{ p }}</option>
+                {% endfor %}
+              </select>
+              <input type="date" name="due_date"
+                     value="{{ t.due.date if t.due else '' }}" aria-label="Due date">
+              <button class="btn btn-primary btn-sm" type="submit">Save</button>
+            </div>
+          </form>
+        </details>
+      </div>
+
+      <form class="delete-form" action="{{ url_for('tasks.delete', task_id=t.id) }}" method="post"
+            data-title="{{ t.title }}">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <button type="submit" class="icon-btn" aria-label="Delete task" title="Delete task">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 7h16M10 11v6M14 11v6"/>
+            <path d="M6 7l1 13h10l1-13"/>
+            <path d="M9 7V4h6v3"/>
+          </svg>
+        </button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="4" y="3" width="16" height="18" rx="3"/>
+      <path d="M8.5 9.5h7M8.5 13h7M8.5 16.5h4"/>
+    </svg>
+    {% if query %}
+      <h2>No matches for “{{ query }}”</h2>
+      <p>Try a shorter search or a different filter.</p>
+    {% elif status == 'done' %}
+      <h2>Nothing completed yet</h2>
+      <p>Check off a task and it will show up here.</p>
+    {% elif status == 'active' %}
+      <h2>All caught up</h2>
+      <p>Every task is done. Enjoy it.</p>
+    {% else %}
+      <h2>Your list is empty</h2>
+      <p>Add your first task above to get started.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</section>
+
+<div class="foot">
+  <span>{{ stats.active }} active · {{ stats.done }} done</span>
+  {% if stats.done %}
+  <form action="{{ url_for('tasks.clear_completed') }}" method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <button class="btn btn-ghost btn-sm" type="submit">Clear completed</button>
+  </form>
+  {% endif %}
+</div>
+
+<p class="hint">Press <kbd>/</kbd> to jump to the input · <kbd>Esc</kbd> to leave it</p>
+{% endblock %}

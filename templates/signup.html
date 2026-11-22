@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Sign up · My Tasks{% endblock %}
+{% block eyebrow %}Get started{% endblock %}
+{% block heading %}Create your account{% endblock %}
+{% block top_right %}{% endblock %}
+
+{% block content %}
+<section class="card auth">
+  <p class="auth-sub">Pick a name and a password. Your lists stay on your own account.</p>
+
+  <form class="auth-form" action="{{ url_for('auth.signup') }}" method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+    <label class="field">
+      <span>Name</span>
+      <input name="name" required autofocus autocomplete="username"
+             minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}"
+             title="3-30 letters, numbers or underscores">
+      <small>3-30 letters, numbers or underscores. This is how you'll log in.</small>
+    </label>
+
+    <label class="field">
+      <span>Password</span>
+      <input type="password" name="password" required minlength="8"
+             autocomplete="new-password" maxlength="1024">
+      <small>At least 8 characters.</small>
+    </label>
+
+    <label class="field">
+      <span>Confirm password</span>
+      <input type="password" name="password2" required minlength="8"
+             autocomplete="new-password" maxlength="1024">
+    </label>
+
+    <button class="btn btn-primary btn-block" type="submit">Create account</button>
+  </form>
+
+  <p class="auth-alt">Already have one? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+</section>
+{% endblock %}

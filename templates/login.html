@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Log in · My Tasks{% endblock %}
+{% block eyebrow %}Welcome back{% endblock %}
+{% block heading %}Log in{% endblock %}
+{% block top_right %}{% endblock %}
+
+{% block content %}
+<section class="card auth">
+  <p class="auth-sub">Your tasks are private to your account.</p>
+
+  <form class="auth-form" action="{{ url_for('auth.login') }}" method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+
+    <label class="field">
+      <span>Name</span>
+      <input name="name" required autofocus autocomplete="username" maxlength="30">
+    </label>
+
+    <label class="field">
+      <span>Password</span>
+      <input type="password" name="password" required
+             autocomplete="current-password" maxlength="1024">
+    </label>
+
+    <button class="btn btn-primary btn-block" type="submit">Log in</button>
+  </form>
+
+  <p class="auth-alt">New here? <a href="{{ url_for('auth.signup') }}">Create an account</a></p>
+</section>
+{% endblock %}
