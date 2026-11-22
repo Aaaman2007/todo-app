@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import tempfile
 from datetime import date, datetime, timezone
 
 from flask import (
@@ -50,7 +51,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 def get_db():
     """Return a connection bound to the current request/app context."""
     if "db" not in g:
-        g.db = sqlite3.connect(app.config["DATABASE"])
+        g.db = sqlite3.connect(app.config["DATABASE"], timeout=15)
         g.db.row_factory = sqlite3.Row
     return g.db
 
@@ -62,13 +63,31 @@ def close_db(_exception=None):
         db.close()
 
 
-def init_db():
-    """Create the tasks table. Safe to call on every start."""
-    path = app.config["DATABASE"]
+def _create_tables(path):
     if path != ":memory:":
         os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
-    with sqlite3.connect(path) as conn:
+    with sqlite3.connect(path, timeout=15) as conn:
+        conn.execute("PRAGMA journal_mode=WAL")
         conn.executescript(SCHEMA)
+
+
+def init_db():
+    """Create the tasks table. Safe to call on every start.
+
+    If the configured database path isn't writable (read-only container image,
+    missing volume mount), fall back to the temp dir so the app still boots
+    instead of crash-looping on every deploy.
+    """
+    path = app.config["DATABASE"]
+    try:
+        _create_tables(path)
+    except (OSError, sqlite3.Error) as exc:
+        fallback = os.path.join(tempfile.gettempdir(), "todos.db")
+        app.logger.warning(
+            "Could not use database %s (%s); falling back to %s", path, exc, fallback
+        )
+        app.config["DATABASE"] = fallback
+        _create_tables(fallback)
 
 
 init_db()
@@ -321,8 +340,14 @@ def not_found(_error):
 
 
 if __name__ == "__main__":
+    # Railway/Render/Heroku inject PORT, and public traffic is routed to the
+    # port configured in the platform's dashboard. These must match, so we
+    # honour PORT and only fall back to 5000 when it is unset.
+    port = int(os.environ.get("PORT", 5000))
+    print(" * Listening on http://0.0.0.0:{}".format(port), flush=True)
+    print(" * Database: {}".format(app.config["DATABASE"]), flush=True)
     app.run(
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000)),
+        port=port,
         debug=os.environ.get("FLASK_DEBUG") == "1",
     )
